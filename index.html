@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Pembagi Kelompok Otomatis</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Quicksand & Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        cute: ['"Quicksand"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #fff7f9;
+            background-image: radial-gradient(#fbcfe8 1px, transparent 1px), radial-gradient(#fce7f3 1px, #fff7f9 1px);
+            background-size: 28px 28px;
+            background-position: 0 0, 14px 14px;
+        }
+        h1, h2, h3, h4, .font-cute {
+            font-family: 'Quicksand', sans-serif;
+        }
+        /* Custom Scrollbar Pink Pastel */
+        ::-webkit-scrollbar { width: 7px; height: 7px; }
+        ::-webkit-scrollbar-track { background: #fff1f5; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb { background: #f9a8d4; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #f472b6; }
+
+        /* Animasi Kartu Muncul Lucu */
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.92) translateY(10px); }
+            70% { transform: scale(1.02) translateY(-2px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-pop {
+            animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        /* Animasi Melayang Halus untuk Aksen */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-4px) rotate(4deg); }
+        }
+        .animate-float {
+            animation: floatSlow 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="text-rose-950 min-h-screen flex flex-col selection:bg-pink-200 selection:text-pink-900">
+
+    <!-- Header Manis Bertema Pastel Pink -->
+    <header class="bg-gradient-to-r from-pink-400 via-rose-400 to-pink-400 text-white shadow-lg shadow-pink-200/60 sticky top-0 z-40 border-b-2 border-pink-200/60">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center space-x-3.5">
+                <div class="bg-white/25 p-3 rounded-2xl backdrop-blur-sm border border-white/40 shadow-inner animate-float">
+                    <i class="fa-solid fa-heart text-2xl text-white drop-shadow-xs"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl sm:text-2xl font-bold tracking-tight drop-shadow-xs">Simulasi Pembagi Kelompok Otomatis</h1>
+                        <span class="hidden md:inline-flex items-center bg-white/25 text-[11px] font-cute font-bold px-2.5 py-0.5 rounded-full border border-white/40">
+                            <i class="fa-solid fa-sparkles mr-1 text-amber-200"></i> Cute Mode
+                        </span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-pink-50 font-medium">Bagi kelompok jadi adil, estetik, dan bebas pilih kasih ✨</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 bg-white/20 px-4 py-1.5 rounded-full border border-white/35 text-xs font-cute font-bold text-white shadow-xs">
+                <i class="fa-solid fa-wand-magic-sparkles text-amber-200"></i>
+                <span>Fisher-Yates Randomizer</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+        <!-- Grid Utama: Panel Kiri (Pengaturan) & Panel Kanan (Hasil) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-7 items-start">
+
+            <!-- PANEL KIRI: Pengaturan Anggota & Pengaturan Pembagian (5 Kolom di Desktop) -->
+            <div class="lg:col-span-5 space-y-6">
+
+                <!-- 1. Kartu Pengaturan Anggota -->
+                <div class="bg-white/95 backdrop-blur-xs rounded-3xl p-5 sm:p-6 shadow-md shadow-pink-100/80 border-2 border-pink-100 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h2 class="font-bold text-rose-900 flex items-center gap-2.5 text-lg">
+                            <span class="w-8 h-8 rounded-2xl bg-pink-100 text-pink-500 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-users"></i>
+                            </span>
+                            Daftar Anggota
+                        </h2>
+                        <span id="badge-count" class="text-xs bg-pink-100 text-pink-700 font-cute font-bold px-3 py-1 rounded-full border border-pink-200">
+                            0 Anggota
+                        </span>
+                    </div>
+
+                    <!-- Tambah Satu Nama -->
+                    <div>
+                        <label for="input-single-name" class="block text-xs font-semibold text-rose-800/80 mb-1.5 ml-1">Tambah Nama Satu per Satu</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="input-single-name" onkeydown="if(event.key==='Enter') addSingleMember()" placeholder="Ketik nama lalu tekan Enter..." class="flex-grow px-4 py-2.5 text-sm bg-pink-50/40 border-2 border-pink-200/80 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-400 placeholder:text-rose-300 text-rose-950 transition-all">
+                            <button onclick="addSingleMember()" title="Tambah Nama" class="bg-pink-500 hover:bg-pink-600 active:scale-95 text-white px-4 py-2.5 text-sm font-bold rounded-2xl transition-all shadow-sm shadow-pink-200 flex items-center justify-center">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Pembatas Lucu -->
+                    <div class="relative flex py-0.5 items-center">
+                        <div class="flex-grow border-t-2 border-dashed border-pink-100"></div>
+                        <span class="flex-shrink mx-3 text-pink-400 text-[11px] font-cute font-bold uppercase tracking-wider flex items-center gap-1">
+                            <i class="fa-solid fa-star text-[9px]"></i> atau impor banyak <i class="fa-solid fa-star text-[9px]"></i>
+                        </span>
+                        <div class="flex-grow border-t-2 border-dashed border-pink-100"></div>
+                    </div>
+
+                    <!-- Area Impor Massal -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center px-1">
+                            <label for="input-bulk-names" class="block text-xs font-semibold text-rose-800/80">Tempel Daftar (baris baru / koma)</label>
+                            <button onclick="loadSampleData()" class="text-xs text-pink-600 hover:text-pink-700 bg-pink-50 hover:bg-pink-100 px-2.5 py-1 rounded-full font-cute font-bold transition-colors flex items-center gap-1 border border-pink-200/70">
+                                <i class="fa-solid fa-wand-sparkles text-[10px]"></i> Isi Contoh Nama
+                            </button>
+                        </div>
+                        <textarea id="input-bulk-names" rows="3" placeholder="Contoh:&#10;Alya Putri, Bella Safira&#10;Citra Kirana&#10;Dinda Hauw" class="w-full px-4 py-2.5 text-sm bg-pink-50/40 border-2 border-pink-200/80 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-400 placeholder:text-rose-300 text-rose-950 resize-none transition-all"></textarea>
+                        <button onclick="processBulkInput()" class="w-full bg-rose-100 hover:bg-rose-200/80 active:scale-[0.99] text-rose-800 py-2.5 text-xs font-cute font-bold rounded-2xl transition-all border border-rose-200 flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-circle-plus text-pink-500"></i> Tambahkan Semua
+                        </button>
+                    </div>
+
+                    <!-- Daftar Badge/Chip Anggota -->
+                    <div class="bg-gradient-to-b from-pink-50/80 to-rose-50/50 border-2 border-pink-100 rounded-2xl p-3.5">
+                        <div class="flex justify-between items-center mb-2.5 pb-2 border-b border-pink-200/60">
+                            <span class="text-xs font-cute font-bold text-rose-800 flex items-center gap-1.5">
+                                <i class="fa-solid fa-ribbon text-pink-400"></i> Anggota Terdaftar (<span id="chip-total-inline">0</span>)
+                            </span>
+                            <button onclick="clearAllMembers()" class="text-xs text-rose-500 hover:text-rose-700 hover:bg-rose-100/80 px-2 py-0.5 rounded-full font-cute font-bold transition-colors flex items-center gap-1">
+                                <i class="fa-solid fa-trash-can text-[11px]"></i> Hapus Semua
+                            </button>
+                        </div>
+                        <div id="member-chips-container" class="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto pr-1">
+                            <p class="w-full text-rose-400 text-center py-5 text-xs italic">Belum ada nama anggota nih~ Yuk isi dulu! 🌸</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Kartu Pengaturan Pembagian -->
+                <div class="bg-white/95 backdrop-blur-xs rounded-3xl p-5 sm:p-6 shadow-md shadow-pink-100/80 border-2 border-pink-100 space-y-4">
+                    <h2 class="font-bold text-rose-900 flex items-center gap-2.5 text-lg">
+                        <span class="w-8 h-8 rounded-2xl bg-rose-100 text-rose-500 flex items-center justify-center text-sm">
+                            <i class="fa-solid fa-sliders"></i>
+                        </span>
+                        Pengaturan Pembagian
+                    </h2>
+
+                    <div class="space-y-4">
+                        <!-- Pilihan Mode Pembagian (Tab Toggle Lucu) -->
+                        <div>
+                            <label class="block text-xs font-semibold text-rose-800/80 mb-1.5 ml-1">Pilih Mode Pembagian</label>
+                            <div class="grid grid-cols-2 gap-2 p-1.5 bg-pink-50 rounded-2xl border border-pink-200/70">
+                                <button type="button" id="mode-btn-groups" onclick="setDivisionMode('groups_count')" class="py-2 px-3 rounded-xl text-xs font-cute font-bold transition-all bg-white text-pink-600 shadow-xs border border-pink-200/80">
+                                    Jumlah Kelompok (k)
+                                </button>
+                                <button type="button" id="mode-btn-members" onclick="setDivisionMode('members_per_group')" class="py-2 px-3 rounded-xl text-xs font-cute font-bold transition-all text-rose-500 hover:text-rose-700">
+                                    Maks. Anggota (n)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Kontrol Input Angka dengan Tombol - dan + -->
+                        <div id="wrapper-groups-count">
+                            <label for="input-groups-count" class="block text-xs font-semibold text-rose-800/80 mb-1.5 ml-1">Mau dibagi jadi berapa kelompok? (<span class="text-pink-600 font-bold">k</span>)</label>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="adjustNumber('input-groups-count', -1)" class="w-11 h-11 rounded-2xl bg-pink-100 hover:bg-pink-200 active:scale-95 text-pink-700 font-bold text-base flex items-center justify-center transition-all border border-pink-200">
+                                    <i class="fa-solid fa-minus"></i>
+                                </button>
+                                <input type="number" id="input-groups-count" min="1" value="4" oninput="updatePreviewInfo()" class="flex-grow h-11 text-center text-base font-cute font-bold text-rose-900 bg-pink-50/50 border-2 border-pink-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-400">
+                                <button type="button" onclick="adjustNumber('input-groups-count', 1)" class="w-11 h-11 rounded-2xl bg-pink-100 hover:bg-pink-200 active:scale-95 text-pink-700 font-bold text-base flex items-center justify-center transition-all border border-pink-200">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="wrapper-members-per-group" class="hidden">
+                            <label for="input-members-per-group" class="block text-xs font-semibold text-rose-800/80 mb-1.5 ml-1">Maksimal berapa orang per kelompok? (<span class="text-pink-600 font-bold">n</span>)</label>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="adjustNumber('input-members-per-group', -1)" class="w-11 h-11 rounded-2xl bg-pink-100 hover:bg-pink-200 active:scale-95 text-pink-700 font-bold text-base flex items-center justify-center transition-all border border-pink-200">
+                                    <i class="fa-solid fa-minus"></i>
+                                </button>
+                                <input type="number" id="input-members-per-group" min="1" value="4" oninput="updatePreviewInfo()" class="flex-grow h-11 text-center text-base font-cute font-bold text-rose-900 bg-pink-50/50 border-2 border-pink-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-400">
+                                <button type="button" onclick="adjustNumber('input-members-per-group', 1)" class="w-11 h-11 rounded-2xl bg-pink-100 hover:bg-pink-200 active:scale-95 text-pink-700 font-bold text-base flex items-center justify-center transition-all border border-pink-200">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Info Pratinjau Pembagian Otomatis -->
+                        <div class="bg-amber-50/80 border border-amber-200/80 rounded-2xl px-3.5 py-2.5 flex items-center gap-2.5 text-xs text-amber-900">
+                            <span class="w-6 h-6 shrink-0 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
+                                <i class="fa-solid fa-lightbulb text-[11px]"></i>
+                            </span>
+                            <p id="preview-division-text" class="font-medium leading-snug">
+                                Masukkan daftar anggota untuk melihat perkiraan pembagian.
+                            </p>
+                        </div>
+
+                        <!-- Tombol Aksi Utama -->
+                        <button id="btn-generate" onclick="startShuffling()" class="w-full bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500 hover:from-pink-600 hover:via-rose-600 hover:to-pink-600 active:scale-[0.99] text-white py-3.5 font-cute font-bold rounded-2xl shadow-lg shadow-pink-200 transition-all flex items-center justify-center gap-2 text-base border border-pink-300/40">
+                            <i id="btn-generate-icon" class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span id="btn-generate-text">Acak & Bagi Kelompok!</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- PANEL KANAN: Hasil Pembagian Kelompok (7 Kolom di Desktop) -->
+            <div class="lg:col-span-7">
+                <div class="bg-white/95 backdrop-blur-xs rounded-3xl p-5 sm:p-6 shadow-md shadow-pink-100/80 border-2 border-pink-100 min-h-[610px] flex flex-col justify-between">
+
+                    <div>
+                        <!-- Header Hasil & Tombol Aksi -->
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b-2 border-dashed border-pink-100 gap-3">
+                            <div>
+                                <h2 class="font-bold text-rose-900 text-lg sm:text-xl flex items-center gap-2">
+                                    <span class="w-8 h-8 rounded-2xl bg-pink-100 text-pink-500 flex items-center justify-center text-sm">
+                                        <i class="fa-solid fa-sparkles"></i>
+                                    </span>
+                                    Hasil Pembagian Kelompok
+                                </h2>
+                                <p id="result-meta" class="text-xs text-rose-500/80 mt-1 ml-10">Klik "Acak & Bagi Kelompok!" untuk mengacak anggota secara adil ✨</p>
+                            </div>
+
+                            <!-- Tombol Acak Ulang, Salin Hasil, Unduh .TXT -->
+                            <div id="action-buttons" class="hidden flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                                <button onclick="startShuffling()" class="flex-1 sm:flex-none justify-center bg-pink-500 hover:bg-pink-600 active:scale-95 text-white px-3.5 py-2 text-xs font-cute font-bold rounded-full transition-all flex items-center gap-1.5 shadow-xs shadow-pink-200">
+                                    <i class="fa-solid fa-rotate"></i> Acak Ulang
+                                </button>
+                                <button onclick="copyResults()" class="flex-1 sm:flex-none justify-center bg-pink-50 hover:bg-pink-100 active:scale-95 text-pink-700 px-3.5 py-2 text-xs font-cute font-bold rounded-full transition-all flex items-center gap-1.5 border border-pink-200">
+                                    <i class="fa-regular fa-copy"></i> Salin Hasil
+                                </button>
+                                <button onclick="exportTxt()" class="flex-1 sm:flex-none justify-center bg-rose-50 hover:bg-rose-100 active:scale-95 text-rose-700 px-3.5 py-2 text-xs font-cute font-bold rounded-full transition-all flex items-center gap-1.5 border border-rose-200">
+                                    <i class="fa-solid fa-download"></i> Unduh .TXT
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Ringkasan Statistik Kecil -->
+                        <div id="mini-stats-bar" class="hidden grid grid-cols-3 gap-2.5 sm:gap-3 mt-4">
+                            <div class="bg-pink-50/90 border border-pink-200/70 rounded-2xl p-3 text-center">
+                                <span class="block text-[11px] font-semibold text-pink-500">Total Anggota</span>
+                                <span id="stat-total-members" class="font-cute font-bold text-lg sm:text-xl text-rose-900">0</span>
+                            </div>
+                            <div class="bg-rose-50/90 border border-rose-200/70 rounded-2xl p-3 text-center">
+                                <span class="block text-[11px] font-semibold text-rose-500">Total Kelompok</span>
+                                <span id="stat-total-groups" class="font-cute font-bold text-lg sm:text-xl text-rose-900">0</span>
+                            </div>
+                            <div class="bg-purple-50/80 border border-purple-200/70 rounded-2xl p-3 text-center">
+                                <span class="block text-[11px] font-semibold text-purple-500">Rata-rata Anggota</span>
+                                <span id="stat-avg-members" class="font-cute font-bold text-lg sm:text-xl text-rose-900">0</span>
+                            </div>
+                        </div>
+
+                        <!-- Container Kartu Kelompok -->
+                        <div id="results-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+                            <!-- State Awal Kosong -->
+                            <div class="col-span-full flex flex-col items-center justify-center py-24 text-center px-4">
+                                <div class="bg-gradient-to-tr from-pink-100 to-rose-100 text-pink-500 w-20 h-20 rounded-3xl flex items-center justify-center mb-4 text-3xl shadow-inner border border-pink-200/70 animate-float">
+                                    <i class="fa-solid fa-heart-pulse"></i>
+                                </div>
+                                <h3 class="text-base font-bold text-rose-900 mb-1">Siap Membagi Kelompok Cantikmu!</h3>
+                                <p class="text-xs text-rose-500/90 max-w-md leading-relaxed">
+                                    Sudah ada 15 contoh nama di daftar kiri. Atur jumlah kelompok yang kamu mau, lalu tekan tombol <strong>Acak & Bagi Kelompok!</strong> 🌸
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer Kecil di dalam Kartu Hasil -->
+                    <div class="mt-8 pt-3.5 border-t border-pink-100 text-[11px] text-rose-400 flex flex-wrap items-center justify-between gap-2">
+                        <span class="flex items-center gap-1.5 font-medium"><i class="fa-solid fa-shield-heart text-pink-400"></i> Distribusi merata otomatis</span>
+                        <span id="footer-status" class="font-cute font-bold">Menunggu pengacakan ✨</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer Sederhana -->
+    <footer class="py-5 mt-auto text-center text-xs text-rose-400 font-cute font-semibold">
+        Dibuat dengan penuh <i class="fa-solid fa-heart text-pink-400 mx-0.5"></i> &bull; Simulasi Pembagi Kelompok Otomatis
+    </footer>
+
+    <!-- Custom Toast Notification Manis -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-24 opacity-0 transition-all duration-300 bg-rose-950/95 backdrop-blur-sm text-white px-4 py-3 rounded-2xl shadow-xl shadow-pink-200/50 border border-pink-400/30 text-sm flex items-center gap-3 pointer-events-none">
+        <span id="toast-icon-wrap" class="w-7 h-7 rounded-full bg-pink-500/20 flex items-center justify-center shrink-0">
+            <i id="toast-icon" class="fa-solid fa-heart text-pink-400 text-sm"></i>
+        </span>
+        <span id="toast-message" class="font-cute font-bold text-xs sm:text-sm">Notifikasi</span>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // State Global Aplikasi
+        let members = [];
+        let lastGeneratedResult = [];
+        let currentMode = 'groups_count'; // 'groups_count' atau 'members_per_group'
+        let isShuffling = false;
+
+        // Kumpulan Nama Contoh Siswa yang Ramah & Lucu
+        const samplePool = [
+            "Alya Putri", "Bella Safira", "Citra Kirana", "Dinda Hauw",
+            "Elsa Maharani", "Fira Nabila", "Gita Gutawa", "Hana Pertiwi",
+            "Intan Permata", "Jihan Aulia", "Keyla Azzahra", "Larasati Dewi",
+            "Maya Septiani", "Nadia Vega", "Olivia Zalianty", "Putri Titian",
+            "Queena Zahra", "Rani Anggraini", "Salsa Bila", "Tiara Andini"
+        ];
+
+        // Variasi Tema Warna Pastel untuk Kartu Kelompok
+        const pastelCardThemes = [
+            {
+                cardBg: "bg-pink-50/70",
+                border: "border-pink-200",
+                headerBg: "bg-pink-100/80",
+                titleText: "text-pink-800",
+                badgeBg: "bg-pink-500 text-white",
+                numBg: "bg-pink-100 text-pink-600",
+                icon: "fa-heart"
+            },
+            {
+                cardBg: "bg-rose-50/70",
+                border: "border-rose-200",
+                headerBg: "bg-rose-100/80",
+                titleText: "text-rose-800",
+                badgeBg: "bg-rose-500 text-white",
+                numBg: "bg-rose-100 text-rose-600",
+                icon: "fa-ribbon"
+            },
+            {
+                cardBg: "bg-purple-50/70",
+                border: "border-purple-200",
+                headerBg: "bg-purple-100/80",
+                titleText: "text-purple-800",
+                badgeBg: "bg-purple-500 text-white",
+                numBg: "bg-purple-100 text-purple-600",
+                icon: "fa-star"
+            },
+            {
+                cardBg: "bg-orange-50/60",
+                border: "border-orange-200",
+                headerBg: "bg-orange-100/80",
+                titleText: "text-orange-800",
+                badgeBg: "bg-orange-400 text-white",
+                numBg: "bg-orange-100 text-orange-600",
+                icon: "fa-sparkles"
+            }
+        ];
+
+        // Inisialisasi saat halaman dimuat
+        window.onload = function() {
+            loadSampleData(true);
+        };
+
+        // Ganti Mode Pembagian (Jumlah Kelompok vs Maks. Anggota per Kelompok)
+        function setDivisionMode(mode) {
+            currentMode = mode;
+            const btnGroups = document.getElementById('mode-btn-groups');
+            const btnMembers = document.getElementById('mode-btn-members');
+            const wGroups = document.getElementById('wrapper-groups-count');
+            const wMembers = document.getElementById('wrapper-members-per-group');
+
+            if (mode === 'groups_count') {
+                btnGroups.className = "py-2 px-3 rounded-xl text-xs font-cute font-bold transition-all bg-white text-pink-600 shadow-xs border border-pink-200/80";
+                btnMembers.className = "py-2 px-3 rounded-xl text-xs font-cute font-bold transition-all text-rose-500 hover:text-rose-700";
+                wGroups.classList.remove('hidden');
+                wMembers.classList.add('hidden');
+            } else {
+                btnMembers.className = "py-2 px-3 rounded-xl text-xs font-cute font-bold transition-all bg-white text-pink-600 shadow-xs border border-pink-200/80";
+                btnGroups.className = "py-2 px-3 rounded-xl text-xs font-cute font-bold transition-all text-rose-500 hover:text-rose-700";
+                wMembers.classList.remove('hidden');
+                wGroups.classList.add('hidden');
+            }
+            updatePreviewInfo();
+        }
+
+        // Tombol - dan + pada Input Angka
+        function adjustNumber(inputId, delta) {
+            const input = document.getElementById(inputId);
+            let val = parseInt(input.value, 10) || 1;
+            val = Math.max(1, val + delta);
+            if (currentMode === 'groups_count' && members.length > 0 && val > members.length) {
+                val = members.length;
+                showToast(`Maksimal ${members.length} kelompok sesuai jumlah anggota ya~`, "error");
+            }
+            input.value = val;
+            updatePreviewInfo();
+        }
+
+        // Perbarui Info Pratinjau Pembagian Otomatis
+        function updatePreviewInfo() {
+            const previewEl = document.getElementById('preview-division-text');
+            const total = members.length;
+
+            if (total === 0) {
+                previewEl.innerHTML = `Masukkan daftar anggota dulu untuk melihat perkiraan pembagian.`;
+                return;
+            }
+
+            let groupCount = 0;
+            if (currentMode === 'groups_count') {
+                groupCount = parseInt(document.getElementById('input-groups-count').value, 10) || 1;
+                if (groupCount < 1) groupCount = 1;
+                if (groupCount > total) {
+                    previewEl.innerHTML = `<span class="text-rose-600 font-bold">Jumlah kelompok (${groupCount}) melebihi total anggota (${total}).</span>`;
+                    return;
+                }
+            } else {
+                const maxPerGroup = parseInt(document.getElementById('input-members-per-group').value, 10) || 1;
+                if (maxPerGroup < 1) {
+                    previewEl.innerHTML = `<span class="text-rose-600 font-bold">Minimal 1 anggota per kelompok ya!</span>`;
+                    return;
+                }
+                groupCount = Math.ceil(total / maxPerGroup);
+            }
+
+            const baseSize = Math.floor(total / groupCount);
+            const remainder = total % groupCount;
+            const sizeRange = remainder === 0 ? `${baseSize} orang/kelompok` : `${baseSize}–${baseSize + 1} orang/kelompok`;
+
+            previewEl.innerHTML = `<strong>${total} anggota</strong> akan dibagi menjadi <strong>${groupCount} kelompok</strong> (${sizeRange})`;
+        }
+
+        // Muat 15 Contoh Nama Siswa
+        function loadSampleData(isInitial = false) {
+            const shuffledPool = fisherYatesShuffle(samplePool);
+            members = shuffledPool.slice(0, 15);
+            renderMemberChips();
+            updatePreviewInfo();
+            if (!isInitial) {
+                showToast("15 contoh nama manis berhasil dimuat! 🌸");
+            }
+        }
+
+        // Tambah Satu Anggota
+        function addSingleMember() {
+            const input = document.getElementById('input-single-name');
+            const name = input.value.trim();
+
+            if (!name) {
+                showToast("Ketik nama anggotanya dulu ya~", "error");
+                return;
+            }
+            if (members.some(m => m.toLowerCase() === name.toLowerCase())) {
+                showToast(`"${name}" sudah ada di daftar kok!`, "error");
+                return;
+            }
+
+            members.push(name);
+            input.value = "";
+            renderMemberChips();
+            updatePreviewInfo();
+            showToast(`Yay! "${name}" berhasil ditambahkan ✨`);
+        }
+
+        // Proses Impor Massal (Baris Baru atau Koma)
+        function processBulkInput() {
+            const textarea = document.getElementById('input-bulk-names');
+            const rawItems = textarea.value
+                .split(/[\n,]+/)
+                .map(n => n.trim())
+                .filter(n => n.length > 0);
+
+            if (rawItems.length === 0) {
+                showToast("Kolom impor masih kosong nih~", "error");
+                return;
+            }
+
+            let addedCount = 0;
+            const existingSet = new Set(members.map(m => m.toLowerCase()));
+
+            for (const item of rawItems) {
+                const lower = item.toLowerCase();
+                if (!existingSet.has(lower)) {
+                    existingSet.add(lower);
+                    members.push(item);
+                    addedCount++;
+                }
+            }
+
+            textarea.value = "";
+            renderMemberChips();
+            updatePreviewInfo();
+
+            if (addedCount > 0) {
+                showToast(`Berhasil menambahkan ${addedCount} anggota baru! 💖`);
+            } else {
+                showToast("Semua nama tersebut sudah ada di daftar!", "error");
+            }
+        }
+
+        // Hapus Satu Anggota dari Chip
+        function removeMember(index) {
+            const removed = members.splice(index, 1)[0];
+            renderMemberChips();
+            updatePreviewInfo();
+            showToast(`"${removed}" dihapus dari daftar.`);
+        }
+
+        // Hapus Semua Anggota
+        function clearAllMembers() {
+            if (members.length === 0) return;
+            members = [];
+            lastGeneratedResult = [];
+            document.getElementById('input-bulk-names').value = "";
+            renderMemberChips();
+            updatePreviewInfo();
+
+            document.getElementById('mini-stats-bar').classList.add('hidden');
+            document.getElementById('action-buttons').classList.add('hidden');
+            document.getElementById('result-meta').innerText = 'Daftar anggota dikosongkan.';
+            document.getElementById('footer-status').innerText = 'Menunggu daftar anggota 🌸';
+            document.getElementById('results-container').innerHTML = `
+                <div class="col-span-full flex flex-col items-center justify-center py-24 text-center px-4">
+                    <div class="bg-pink-50 text-pink-400 w-20 h-20 rounded-3xl flex items-center justify-center mb-4 text-3xl border border-pink-100">
+                        <i class="fa-solid fa-face-smile-beam"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-rose-900 mb-1">Daftar Anggota Kosong</h3>
+                    <p class="text-xs text-rose-500 max-w-md">Tambahkan nama anggota dulu di sebelah kiri atau klik "Isi Contoh Nama" ya!</p>
+                </div>
+            `;
+            showToast("Semua daftar anggota telah dibersihkan!");
+        }
+
+        // Render Badge/Chip Anggota Pastel Pink
+        function renderMemberChips() {
+            const container = document.getElementById('member-chips-container');
+            const badgeCount = document.getElementById('badge-count');
+            const inlineTotal = document.getElementById('chip-total-inline');
+
+            badgeCount.innerText = `${members.length} Anggota`;
+            inlineTotal.innerText = members.length;
+
+            if (members.length === 0) {
+                container.innerHTML = `<p class="w-full text-rose-400 text-center py-5 text-xs italic">Belum ada nama anggota nih~ Yuk isi dulu! 🌸</p>`;
+                return;
+            }
+
+            container.innerHTML = "";
+            members.forEach((m, idx) => {
+                const chip = document.createElement('span');
+                chip.className = "inline-flex items-center gap-1.5 bg-white hover:bg-pink-100/70 text-rose-900 border border-pink-200 px-3 py-1.5 rounded-full text-xs font-medium shadow-2xs transition-colors group";
+                chip.innerHTML = `
+                    <span class="text-[10px] font-cute font-bold text-pink-500">${idx + 1}.</span>
+                    <span class="max-w-[130px] truncate">${escapeHtml(m)}</span>
+                    <button type="button" onclick="removeMember(${idx})" title="Hapus ${escapeHtml(m)}" class="w-4 h-4 rounded-full bg-pink-100 group-hover:bg-pink-500 text-pink-600 group-hover:text-white flex items-center justify-center text-[10px] transition-colors ml-0.5">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                container.appendChild(chip);
+            });
+        }
+
+        // Algoritma Pengacakan Fisher-Yates Shuffle
+        function fisherYatesShuffle(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // Animasi Pengacakan Singkat Sebelum Menampilkan Hasil Akhir
+        function startShuffling() {
+            if (isShuffling) return;
+
+            if (members.length === 0) {
+                showToast("Isi daftar anggota terlebih dahulu ya~ 🌸", "error");
+                return;
+            }
+
+            let groupCount = 0;
+            if (currentMode === 'groups_count') {
+                groupCount = parseInt(document.getElementById('input-groups-count').value, 10);
+                if (isNaN(groupCount) || groupCount < 1) {
+                    showToast("Jumlah kelompok minimal 1 ya!", "error");
+                    return;
+                }
+                if (groupCount > members.length) {
+                    showToast("Jumlah kelompok tidak boleh lebih banyak dari total anggota!", "error");
+                    return;
+                }
+            } else {
+                const maxPerGroup = parseInt(document.getElementById('input-members-per-group').value, 10);
+                if (isNaN(maxPerGroup) || maxPerGroup < 1) {
+                    showToast("Maksimal anggota per kelompok minimal 1!", "error");
+                    return;
+                }
+                groupCount = Math.ceil(members.length / maxPerGroup);
+            }
+
+            isShuffling = true;
+            const btn = document.getElementById('btn-generate');
+            const btnIcon = document.getElementById('btn-generate-icon');
+            const btnText = document.getElementById('btn-generate-text');
+
+            btn.disabled = true;
+            btn.classList.add('opacity-85', 'cursor-not-allowed');
+            btnIcon.className = "fa-solid fa-spinner fa-spin";
+            btnText.innerText = "Sedang Mengacak... ✨";
+
+            let ticks = 0;
+            const maxTicks = 6;
+            const interval = setInterval(() => {
+                ticks++;
+                generateGroups(groupCount, ticks < maxTicks);
+                if (ticks >= maxTicks) {
+                    clearInterval(interval);
+                    isShuffling = false;
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-85', 'cursor-not-allowed');
+                    btnIcon.className = "fa-solid fa-wand-magic-sparkles";
+                    btnText.innerText = "Acak & Bagi Kelompok!";
+                    showToast(`Yeay! ${members.length} anggota berhasil dibagi ke ${groupCount} kelompok! 💖`);
+                }
+            }, 65);
+        }
+
+        // Eksekusi Pembagian Kelompok Secara Merata (Round-Robin)
+        function generateGroups(groupCount, isPreviewTick = false) {
+            const shuffled = fisherYatesShuffle(members);
+            const groups = Array.from({ length: groupCount }, () => []);
+
+            shuffled.forEach((member, index) => {
+                groups[index % groupCount].push(member);
+            });
+
+            if (!isPreviewTick) {
+                lastGeneratedResult = groups;
+            }
+            renderResults(groups, isPreviewTick);
+        }
+
+        // Render Kartu-Kartu Kelompok Pastel
+        function renderResults(groups, isPreviewTick) {
+            const container = document.getElementById('results-container');
+            const resultMeta = document.getElementById('result-meta');
+            const actionButtons = document.getElementById('action-buttons');
+            const miniStatsBar = document.getElementById('mini-stats-bar');
+            const footerStatus = document.getElementById('footer-status');
+
+            // Update Ringkasan Statistik Kecil
+            const avg = (members.length / groups.length).toFixed(1).replace(/\.0$/, '');
+            document.getElementById('stat-total-members').innerText = members.length;
+            document.getElementById('stat-total-groups').innerText = groups.length;
+            document.getElementById('stat-avg-members').innerText = `${avg} org`;
+
+            miniStatsBar.classList.remove('hidden');
+
+            if (!isPreviewTick) {
+                actionButtons.classList.remove('hidden');
+                resultMeta.innerText = `Berhasil membentuk ${groups.length} kelompok secara adil & merata ✨`;
+                footerStatus.innerText = `${groups.length} Kelompok Terbentuk 💖`;
+            }
+
+            container.innerHTML = "";
+            groups.forEach((group, idx) => {
+                const theme = pastelCardThemes[idx % pastelCardThemes.length];
+                const card = document.createElement('div');
+                card.className = `${theme.cardBg} border-2 ${theme.border} rounded-3xl overflow-hidden flex flex-col justify-between shadow-xs hover:shadow-md transition-all ${!isPreviewTick ? 'animate-pop' : ''}`;
+                if (!isPreviewTick) {
+                    card.style.animationDelay = `${Math.min(idx * 45, 350)}ms`;
+                }
+
+                let memberListHtml = "";
+                group.forEach((m, mIdx) => {
+                    memberListHtml += `
+                        <li class="flex items-center gap-2.5 text-xs sm:text-sm text-rose-950 bg-white/95 px-3 py-2 rounded-2xl border border-white shadow-2xs">
+                            <span class="w-5 h-5 shrink-0 rounded-full ${theme.numBg} flex items-center justify-center font-cute font-bold text-[11px]">${mIdx + 1}</span>
+                            <span class="font-medium truncate">${escapeHtml(m)}</span>
+                        </li>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div>
+                        <div class="${theme.headerBg} px-4 py-3 flex justify-between items-center border-b ${theme.border}">
+                            <h3 class="font-bold text-sm sm:text-base ${theme.titleText} flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-full ${theme.badgeBg} flex items-center justify-center text-[11px] shadow-2xs">
+                                    <i class="fa-solid ${theme.icon}"></i>
+                                </span>
+                                Kelompok ${idx + 1}
+                            </h3>
+                            <span class="text-[11px] bg-white/90 ${theme.titleText} font-cute font-bold px-2.5 py-0.5 rounded-full border ${theme.border}">
+                                ${group.length} Orang
+                            </span>
+                        </div>
+                        <ul class="p-3.5 space-y-2 max-h-56 overflow-y-auto">
+                            ${memberListHtml}
+                        </ul>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Salin Hasil ke Clipboard
+        function copyResults() {
+            if (lastGeneratedResult.length === 0) return;
+
+            let text = "✨ HASIL PEMBAGIAN KELOMPOK OTOMATIS ✨\n";
+            text += `Total Anggota: ${members.length} | Jumlah Kelompok: ${lastGeneratedResult.length}\n\n`;
+
+            lastGeneratedResult.forEach((group, idx) => {
+                text += `🎀 Kelompok ${idx + 1} (${group.length} Orang):\n`;
+                group.forEach((m, mIdx) => {
+                    text += `   ${mIdx + 1}. ${m}\n`;
+                });
+                text += "\n";
+            });
+
+            const textarea = document.createElement('textarea');
+            textarea.value = text.trim();
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast("Hasil kelompok berhasil disalin! Siap ditempel 📋💖");
+            } catch (err) {
+                showToast("Yah, gagal menyalin hasil.", "error");
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // Unduh Hasil dalam Format .TXT
+        function exportTxt() {
+            if (lastGeneratedResult.length === 0) return;
+
+            const now = new Date();
+            let text = "=== HASIL PEMBAGIAN KELOMPOK OTOMATIS ===\n";
+            text += `Tanggal: ${now.toLocaleDateString('id-ID')} ${now.toLocaleTimeString('id-ID')}\n`;
+            text += `Total Anggota: ${members.length} | Jumlah Kelompok: ${lastGeneratedResult.length}\n\n`;
+
+            lastGeneratedResult.forEach((group, idx) => {
+                text += `Kelompok ${idx + 1} (${group.length} Orang):\n`;
+                group.forEach((m, mIdx) => {
+                    text += `  ${mIdx + 1}. ${m}\n`;
+                });
+                text += "\n";
+            });
+
+            const blob = new Blob([text.trim()], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Pembagian_Kelompok_${now.toISOString().slice(0, 10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("File .TXT berhasil diunduh! 🌸");
+        }
+
+        // Escape HTML untuk Keamanan Input Nama
+        function escapeHtml(str) {
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Notifikasi Toast Lucu
+        let toastTimeout;
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastIconWrap = document.getElementById('toast-icon-wrap');
+
+            toastMessage.innerText = message;
+            if (type === 'success') {
+                toastIcon.className = "fa-solid fa-heart text-pink-400 text-sm";
+                toastIconWrap.className = "w-7 h-7 rounded-full bg-pink-500/20 flex items-center justify-center shrink-0";
+            } else {
+                toastIcon.className = "fa-solid fa-circle-exclamation text-amber-300 text-sm";
+                toastIconWrap.className = "w-7 h-7 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0";
+            }
+
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
